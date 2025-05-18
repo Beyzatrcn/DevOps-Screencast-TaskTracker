@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Task Tracker Frontend</title>
+</head>
+<body>
+  <h1>📝 Aufgabenliste</h1>
+
+  <input type="text" id="taskName" placeholder="Aufgabenname" />
+  <input type="text" id="taskStatus" placeholder="Status (z. B. Offen)" />
+  <button onclick="addTask()">Hinzufügen</button>
+
+  <h2>📂 Aufgaben</h2>
+  <ul id="taskList"></ul>
+
+  <script>
+    function loadTasks() {
+      fetch('http://localhost:8080/tasks')
+        .then(response => response.json())
+        .then(tasks => {
+          const list = document.getElementById('taskList');
+          list.innerHTML = '';
+          tasks.forEach(task => {
+            const li = document.createElement('li');
+            li.textContent = task.name + ' (' + task.status + ')';
+            list.appendChild(li);
+          });
+        })
+        .catch(error => console.error('Fehler beim Laden:', error));
+    }
+
+    function addTask() {
+      const name = document.getElementById('taskName').value;
+      const status = document.getElementById('taskStatus').value;
+
+      if (!name || !status) {
+        alert('Bitte Aufgabenname und Status eingeben.');
+        return;
+      }
+
+      fetch('http://localhost:8080/tasks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ name: name, status: status })
+      })
+      .then(response => {
+        if (response.ok) {
+          loadTasks();
+          document.getElementById('taskName').value = '';
+          document.getElementById('taskStatus').value = '';
+        } else {
+          console.error('Fehler beim Hinzufügen:', response.statusText);
+        }
+      })
+      .catch(error => console.error('Fehler:', error));
+    }
+
+    // Direkt beim Start laden
+    window.onload = loadTasks;
+  </script>
+</body>
+</html>
